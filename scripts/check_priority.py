@@ -99,13 +99,16 @@ def check_quotas(docs, known):
     return errors
 
 
-def run(paths):
-    docs = load_docs(paths)
+def run_docs(docs):
     classes, errors = check_classes(docs)
     known = set(classes) | BUILTIN_CLASSES
     errors += check_workloads(docs, known)
     errors += check_quotas(docs, known)
     return errors
+
+
+def run(paths):
+    return run_docs(load_docs(paths))
 
 
 def main():
