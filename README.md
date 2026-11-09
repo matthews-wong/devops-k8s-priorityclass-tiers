@@ -35,4 +35,5 @@ Needs `kubeconform`, `actionlint` and Python 3 with PyYAML.
     make validate
 
 The checker fails when a workload has no class, names a class that is not defined,
-when more than one class is `globalDefault`, or when two classes share a value.
+when more than one class is `globalDefault`, when two classes share a value, or when a ResourceQuota scopes to a class
+that does not exist.
