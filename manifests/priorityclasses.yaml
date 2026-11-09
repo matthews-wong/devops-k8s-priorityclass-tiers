@@ -1,0 +1,38 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: platform-critical
+  labels:
+    app.kubernetes.io/name: priorityclass-tiers
+    app.kubernetes.io/component: scheduling
+    app.kubernetes.io/part-of: priorityclass-tiers
+value: 100000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: Shared platform services that everything else depends on.
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: business-standard
+  labels:
+    app.kubernetes.io/name: priorityclass-tiers
+    app.kubernetes.io/component: scheduling
+    app.kubernetes.io/part-of: priorityclass-tiers
+value: 10000
+globalDefault: true
+preemptionPolicy: PreemptLowerPriority
+description: User-facing applications. Default for pods that name no class.
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch-low
+  labels:
+    app.kubernetes.io/name: priorityclass-tiers
+    app.kubernetes.io/component: scheduling
+    app.kubernetes.io/part-of: priorityclass-tiers
+value: 100
+globalDefault: false
+preemptionPolicy: Never
+description: Restartable batch work. Waits for room instead of evicting others.
