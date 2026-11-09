@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tmp-sweeper
+  namespace: tiers-demo
+  labels:
+    app.kubernetes.io/name: tmp-sweeper
+    app.kubernetes.io/instance: tmp-sweeper
+    app.kubernetes.io/version: "1.37"
+    app.kubernetes.io/component: maintenance
+    app.kubernetes.io/part-of: priorityclass-tiers
+spec:
+  schedule: "17 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 600
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: tmp-sweeper
+            app.kubernetes.io/instance: tmp-sweeper
+            app.kubernetes.io/component: maintenance
+            app.kubernetes.io/part-of: priorityclass-tiers
+        spec:
+          priorityClassName: batch-low
+          restartPolicy: OnFailure
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: sweeper
+              image: docker.io/library/busybox:1.37@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
+              imagePullPolicy: IfNotPresent
+              command: ["sh", "-c", "find /scratch -type f -mtime +7 -print -delete"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests: { cpu: 10m, memory: 16Mi }
+                limits: { cpu: 100m, memory: 32Mi }
+              volumeMounts:
+                - { name: scratch, mountPath: /scratch }
+          volumes:
+            - name: scratch
+              emptyDir: { sizeLimit: 64Mi }
